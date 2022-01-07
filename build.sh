@@ -8,4 +8,4 @@ do
 	OBJS="${OBJS} ${f%.c}.o"
 done
 
-gcc $OBJS -lSDL2 -lSDL2_ttf -pthread -o game
+gcc $OBJS -lSDL2 -lSDL2_ttf -pthread -o game.elf
