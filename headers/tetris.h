@@ -1,6 +1,8 @@
 #ifndef TETRIS_H
 #define TETRIS_H
 
+#include <SDL2/SDL.h>
+
 #define SHAPE_I 0
 #define SHAPE_J 1
 #define SHAPE_L 2
@@ -21,6 +23,31 @@ struct shape {
 	/* Current coordinates of the blocks making  up the shape */
 	int blocks[4][2];
 };
+
+struct board {
+	struct block *blocks;
+	/* Dimensions of the board in blocks  */
+	int w, h; 
+	/* Dimensions of each block */
+	int bw, bh;
+
+	struct shape cur_shape;
+
+	/* Incremented every time a line is cleared */
+	int score;
+};
+
+/* Creates a shape on the given board */
+void make_shape(struct board *board, int shape);
+
+/* Rotates the current shape of the board 
+ * once, 90 degrees to the right.
+ */
+int rotate_shape(struct board *board);
+
+int move_shape(struct board *board, int x_offset, int y_offset);
+
+void draw_board(SDL_Renderer *r, struct board *b, int x, int y);
 
 
 #endif
