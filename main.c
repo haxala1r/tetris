@@ -85,7 +85,9 @@ int main(void) {
 
 		/* Advance the game. */
 		if ((cur_tick & (move_freq - 1)) == 0) {
-			move_shape(&tetris_board, 0, 1);
+			if (move_shape(&tetris_board, 0, 1) == 1) { 
+				reset_board(&tetris_board);
+			}
 		}
 
 		draw_board(renderer, &tetris_board, board_x, board_y);

@@ -5,53 +5,56 @@
  * boards etc.
  */
 
-void make_shape(struct board *board, int shape) {
+int make_shape(struct board *board, int shape) {
+	/* First, we set the coordinates for the shape, then after the switch 
+	 * we fill in the shape. We do this because we also need to check whether the player lost.
+	 * To check whether the player lost, we check whether the place the piece will spawn in
+	 * is already filled, if so, return 1 to signal player's loss.
+	 */
+	struct block b;
 	switch (shape) {
 	case SHAPE_I:
+		b = cyan_block;
 		for (int i = 0; i < 4; i++) {
-			int x = board->w/2, y = i;
-			board->cur_shape.blocks[i][0] = x;
-			board->cur_shape.blocks[i][1] = y;
-			board->blocks[y * board->w + x] = cyan_block;
+			board->cur_shape.blocks[i][0] = board->w/2;
+			board->cur_shape.blocks[i][1] = i;
 		}
 		board->cur_shape.box_width = 4;
 		board->cur_shape.box_x = board->w/2 - 2;
 		board->cur_shape.box_y = 0;
 		break;
 	case SHAPE_J:
+		b = blue_block;
 		for (int i = 0; i < 3; i++) {
-			int x = board->w/2, y = i;
-			board->cur_shape.blocks[i][0] = x;
-			board->cur_shape.blocks[i][1] = y;
-			board->blocks[y * board->w + x] = blue_block;
+			board->cur_shape.blocks[i][0] = board->w/2;
+			board->cur_shape.blocks[i][1] = i;
 		}
-		board->blocks[board->w/2 + 1] = blue_block;
 		board->cur_shape.blocks[3][0] = board->w/2 + 1;
 		board->cur_shape.blocks[3][1] = 0;
+
 		board->cur_shape.box_width = 3;
 		board->cur_shape.box_x = board->w/2 - 1;
 		board->cur_shape.box_y = 0;
 		break;
 	case SHAPE_L:
+		b = orange_block;
 		for (int i = 0; i < 3; i++) {
-			int x = board->cur_shape.blocks[i][0] = board->w/2;
-			int y = board->cur_shape.blocks[i][1] = i;
-			board->blocks[y * board->w + x] = orange_block;
+			board->cur_shape.blocks[i][0] = board->w/2;
+			board->cur_shape.blocks[i][1] = i;
 		}
-		board->blocks[board->w/2 + 1 + 2 * board->w] = orange_block;
 		board->cur_shape.blocks[3][0] = board->w/2 + 1;
 		board->cur_shape.blocks[3][1] = 2;
+
 		board->cur_shape.box_width = 3;
 		board->cur_shape.box_x = board->w/2 - 1;
 		board->cur_shape.box_y = 0;
 		break;
 	case SHAPE_O:
+		b = yellow_block;
 		for (int i = 0; i < 2; i++) {
 			for (int j = 0; j < 2; j++) {
-				int x = board->cur_shape.blocks[i * 2 + j][0] = board->w/2 + i;
-				int y = board->cur_shape.blocks[i * 2 + j][1] = j;
-
-				board->blocks[x + y * board->w] = yellow_block;
+				board->cur_shape.blocks[i * 2 + j][0] = board->w/2 + i;
+				board->cur_shape.blocks[i * 2 + j][1] = j;
 			}
 		}
 		board->cur_shape.box_width = 2;
@@ -59,22 +62,21 @@ void make_shape(struct board *board, int shape) {
 		board->cur_shape.box_y = 0;
 		break;
 	case SHAPE_S:
+		b = green_block;
 		for (int i = 0; i < 4; i++) {
-			int x = board->cur_shape.blocks[i][0] = board->w/2 + i/2;
-			int y = board->cur_shape.blocks[i][1] = i/2 + i%2;
-			board->blocks[x + y * board->w] = green_block;
+			board->cur_shape.blocks[i][0] = board->w/2 + i/2;
+			board->cur_shape.blocks[i][1] = i/2 + i%2;
 		}
 		board->cur_shape.box_width = 3;
 		board->cur_shape.box_x = board->w/2 - 1;
 		board->cur_shape.box_y = 0;
 		break;
 	case SHAPE_T:
+		b = purple_block;
 		for (int i = 0; i < 3; i++) {
-			int x = board->cur_shape.blocks[i][0] = board->w/2;
-			int y = board->cur_shape.blocks[i][1] = i;
-			board->blocks[x + y * board->w] = purple_block;
+			board->cur_shape.blocks[i][0] = board->w/2;
+			board->cur_shape.blocks[i][1] = i;
 		}
-		board->blocks[board->w/2 + 1 + board->w] = purple_block;
 		board->cur_shape.blocks[3][0] = board->w/2 + 1;
 		board->cur_shape.blocks[3][1] = 1;
 
@@ -83,18 +85,25 @@ void make_shape(struct board *board, int shape) {
 		board->cur_shape.box_y = 0;
 		break;
 	case SHAPE_Z:
+		b = red_block;
 		for (int i = 0; i < 4; i++) {
-			int x = board->cur_shape.blocks[i][0] = board->w/2 + i/2;
-			int y = board->cur_shape.blocks[i][1] = 2 - (i + 1)/2;
-			board->blocks[x + y * board->w] = red_block;
+			board->cur_shape.blocks[i][0] = board->w/2 + i/2;
+			board->cur_shape.blocks[i][1] = 2 - (i + 1)/2;
 		}
 		board->cur_shape.box_width = 3;
 		board->cur_shape.box_x = board->w/2 - 1;
 		board->cur_shape.box_y = 0;
 		break;
 	default:
-		return;
+		return -1;
 	}
+	for (int i = 0; i < 4; i++) {
+		int x = board->cur_shape.blocks[i][0];
+		int y = board->cur_shape.blocks[i][1];
+		if (memcmp(board->blocks + x + y * board->w, &empty_block, sizeof(struct block))) return 1;
+		board->blocks[x + y * board->w] = b;
+	}
+	return 0;
 }
 
 int rotate_shape(struct board *board) {
@@ -219,8 +228,7 @@ collision:
 	/* First, check for line clears */
 	check_clears(board);
 	/* Immediately create new shape. */
-	make_shape(board, rand() % 7);
-	return 0;
+	return make_shape(board, rand() % 7);
 }
 
 int reset_board(struct board *b) {
@@ -228,5 +236,7 @@ int reset_board(struct board *b) {
 		b->blocks[i] = empty_block;
 	}
 	make_shape(b, rand() % 7);
+	b->score = 0;
+	return 0;
 }
 

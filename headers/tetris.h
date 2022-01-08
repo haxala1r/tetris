@@ -47,7 +47,7 @@ static struct block purple_block = { .color = { 180,   0, 255 } };
 static struct block red_block    = { .color = { 255,   0,   0 } };
 
 /* Creates a shape on the given board */
-void make_shape(struct board *board, int shape);
+int make_shape(struct board *board, int shape);
 
 /* Rotates the current shape of the board
  * once, 90 degrees to the right.
@@ -55,6 +55,8 @@ void make_shape(struct board *board, int shape);
 int rotate_shape(struct board *board);
 
 int move_shape(struct board *board, int x_offset, int y_offset);
+int reset_board(struct board *board);
+
 
 void draw_board(SDL_Renderer *r, struct board *b, int x, int y);
 void draw_text(SDL_Renderer *,char *, int x, int y, int w, int h);
