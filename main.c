@@ -4,37 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-#define SHAPE_I 0
-#define SHAPE_J 1
-#define SHAPE_L 2
-#define SHAPE_O 3
-#define SHAPE_S 4
-#define SHAPE_T 5
-#define SHAPE_Z 6
+#include "headers/tetris.h"
 
 
-struct block {
-	int color[3];
-};
-
-struct shape {
-	/* This stuff helps to rotate the shape. Otherwise not necessary */
-	int cur_direction; 
-	int box_width;    /* The dimensions of box containing shape */
-	int box_x, box_y; /* the corner of the box containing shape */
-
-	int blocks[4][2];
-};
-
-
+/* TODO: make these configurable */
 int w=10, h=20;   /* Tetris game sizes */
 int bw=20, bh=20; /* Block sizes       */
 
-struct block empty_block = {
-	.color = { 255, 255, 255 }
-};
-
+struct block empty_block  = { .color = { 255, 255, 255 } };
 struct block orange_block = { .color = { 255, 142,   0 } };
 struct block cyan_block   = { .color = {   0, 180, 255 } };
 struct block blue_block   = { .color = {   0,   0, 255 } };
@@ -137,14 +114,13 @@ void make_shape(struct block *board, int shape) {
 	}
 }
 
-int move_shape_x(struct block *, int);
-
+int move_shape(struct block *, int, int);
 int rotate_shape(struct block *board) {
 	if (cur_shape.box_x < 0) {
-		move_shape_x(board, -cur_shape.box_x);
+		move_shape(board, -cur_shape.box_x, 0);
 	} 
 	if ((cur_shape.box_x + cur_shape.box_width) > w) {
-		move_shape_x(board, -1);
+		move_shape(board, -1, 0);
 	}
 	struct block tmp; /* Store the shape while copy/pasting it */
 	/* Source coordinate array  */
@@ -207,21 +183,29 @@ int check_clears(struct block *board) {
 }
 
 /* Moves the current shape down by one block */
-int move_shape(struct block *board) {
+int move_shape(struct block *board, int x_offset, int y_offset) {
 	/* TODO: fix this to be more like move_shape.x (i.e. make it work) */
 	struct block tmp; /* Store the block */ 
 	int target[4][2];
-	
+	/* Check if coordinates are out of bounds */
+	for (int i = 0; i < 4; i++) {
+		int x = cur_shape.blocks[i][0];
+		int y = cur_shape.blocks[i][1];
+		if (((x + x_offset) < 0) || ((x + x_offset) >= w)) return -1;
+		if ((y + y_offset) < 0) return -1;
+		tmp = board[x + y * w];
+		if ((y + y_offset) >= h) goto collision;
+	}
 	/* Momentarily delete piece. We need to do this,
 	 * because when checking whether the target area is empty
 	 * there is a chance the target area may overlap with the current
 	 * area.
 	 */
 	for (int i = 0; i < 4; i++) {
-		int x =  cur_shape.blocks[i][0];
+		int x = cur_shape.blocks[i][0];
 		int y = cur_shape.blocks[i][1];
-		target[i][0] = x;
-		target[i][1] = y + 1;
+		target[i][0] = x + x_offset;
+		target[i][1] = y + y_offset;
 		tmp = board[x + y * w];
 		board[x + y * w] = empty_block;
 	}
@@ -238,7 +222,8 @@ int move_shape(struct block *board) {
 		board[target[i][0] + target[i][1] * w] = tmp;
 	}
 	
-	cur_shape.box_y++;
+	cur_shape.box_x += x_offset;
+	cur_shape.box_y += y_offset;
 	return 0;
 collision:
 	/* restore piece */
@@ -253,43 +238,6 @@ collision:
 	make_shape(board, rand() % 7);
 	return 0;
 }
-
-int move_shape_x(struct block *board, int x_offset) {
-	/* First, momentarily delete the blocks making up the shape. This makes
-	 * comparing and moving easier.
-	 */
-	struct block temp[4];
-	for (int i = 0; i < 4; i++) {
-		int x = cur_shape.blocks[i][0];
-		int y = cur_shape.blocks[i][1];
-		temp[i] = board[y * w + x];
-		board[y * w + x] = empty_block;
-	}
-	/* Check if all target blocks are empty. */
-	for (int i = 0; i < 4; i++) {
-		int x = cur_shape.blocks[i][0] + x_offset;
-		if ((x < 0) || (x >= w)) goto fail;
-		int y = cur_shape.blocks[i][1];
-		/* Return if the target block isn't empty */
-		if (memcmp(board + y * w + x, &empty_block, sizeof(struct block))) goto fail;
-	}
-	/* Paste the blocks to target */
-	for (int i = 0; i < 4; i++) {
-		int x = (cur_shape.blocks[i][0] += x_offset);
-		int y = cur_shape.blocks[i][1];
-		board[y * w + x] = temp[i];
-	}
-	cur_shape.box_x += x_offset;
-	return 0;
-fail:
-	/* Paste the blocks to their original places */
-	for (int i = 0; i < 4; i++) {
-		int x = cur_shape.blocks[i][0];
-		int y = cur_shape.blocks[i][1];
-		board[y * w + x] = temp[i];
-	}
-	return -1;
-}	
 
 void draw_board(SDL_Renderer *r, struct block *board, int x, int y) {
 	if (board == NULL) return;
@@ -347,10 +295,10 @@ int main(void) {
 				/* Handle key presses */
 				switch(event.key.keysym.sym) {
 				case SDLK_LEFT:
-					move_shape_x(tetris_board, -1);
+					move_shape(tetris_board, -1, 0);
 					break;
 				case SDLK_RIGHT:
-					move_shape_x(tetris_board, 1);
+					move_shape(tetris_board, 1, 0);
 					break;
 				case SDLK_DOWN:
 					move_freq = 2;
@@ -380,7 +328,7 @@ int main(void) {
 		
 		/* Advance the game. */
 		if ((cur_tick & (move_freq - 1)) == 0) {
-			move_shape(tetris_board);
+			move_shape(tetris_board, 0, 1);
 		}
 
 		/* Draw shit? */
