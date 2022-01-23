@@ -64,13 +64,14 @@ int main(void) {
 				goto quit;
 			case SDL_KEYDOWN:
 				if (button_get_state("AI") == 1) break;
+				int stat = 0;
 				/* Handle key presses */
 				switch(event.key.keysym.sym) {
 				case SDLK_LEFT:
-					move_shape(&tetris_board, -1, 0);
+					stat = move_shape(&tetris_board, -1, 0);
 					break;
 				case SDLK_RIGHT:
-					move_shape(&tetris_board, 1, 0);
+					stat = move_shape(&tetris_board, 1, 0);
 					break;
 				case SDLK_DOWN:
 					move_freq = 2;
@@ -81,9 +82,13 @@ int main(void) {
 				case SDLK_SPACE:
 					hold_piece(&tetris_board);
 					break;
+				case SDLK_RETURN:
+					stat = (hard_drop(&tetris_board) >= 0) ? 0 : 1;
+					break;
 				default:
 					break;
 				}
+				if (stat) reset_board(&tetris_board);
 				break;
 			case SDL_KEYUP:
 				switch(event.key.keysym.sym) {
@@ -153,7 +158,9 @@ int main(void) {
 			}
 			/* Move the piece down */
 			if ((cur_tick & (move_freq - 1)) == 0) {
-				move_shape(&tetris_board, 0, 1);
+				if (move_shape(&tetris_board, 0, 1) == 1) {
+					reset_board(&tetris_board);
+				}
 			}
 		}
 		
