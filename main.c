@@ -5,6 +5,7 @@
 #include <string.h>
 #include <time.h>
 #include "headers/tetris.h"
+#include "headers/ai.h"
 
 
 int main(void) {
@@ -19,7 +20,7 @@ int main(void) {
 	if (window == NULL) return -3;
 	SDL_Renderer *renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_ACCELERATED);
 	if (renderer == NULL) return -3;
-
+	
 	/* Allocate the board and clear it. */
 	struct board tetris_board;
 	memset(&tetris_board, 0, sizeof(struct board));
@@ -29,9 +30,7 @@ int main(void) {
 	tetris_board.h = 20;
 
 	tetris_board.blocks = malloc(tetris_board.w * tetris_board.h * sizeof(struct block));
-	for (int i = 0; i < (tetris_board.w * tetris_board.h); i++)
-		tetris_board.blocks[i] = empty_block;
-	make_shape(&tetris_board, rand() % 6);
+	reset_board(&tetris_board);
 
 	tetris_board.bw = tetris_board.bh = 20;
 	int board_x = (sw / 2) - (tetris_board.w * tetris_board.bw / 2);
@@ -80,25 +79,32 @@ int main(void) {
 				break;
 			}
 		}
+		/* Background */
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 		SDL_RenderClear(renderer);
-
-		/* Advance the game. */
-		if ((cur_tick & (move_freq - 1)) == 0) {
-			if (move_shape(&tetris_board, 0, 1) == 1) { 
-				reset_board(&tetris_board);
-			}
+		
+		/* TODO: add the option to toggle between AI/player */
+		if (ai_pick_move(NULL, &tetris_board)) {
+			reset_board(&tetris_board);
 		}
-
+		/* Advance the game. */
+		//if ((cur_tick & (move_freq - 1)) == 0) {
+		//	if (move_shape(&tetris_board, 0, 1) == 1) { 
+		//		reset_board(&tetris_board);
+		//	}
+		//}
+		
+		
 		draw_board(renderer, &tetris_board, board_x, board_y);
+		draw_held(renderer, &tetris_board, 50, board_y);	
 		
 		/* Draw the score at the top */
 		char s[64];
 		sprintf(s, "SCORE: %d", tetris_board.score);
 		draw_text(renderer, s, sw/2 - 100, 0, 200, 40);
-
+		
 		SDL_RenderPresent(renderer);
-		SDL_Delay(10);
+		SDL_Delay(1);
 		cur_tick++;
 	}
 quit:

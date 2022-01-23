@@ -31,6 +31,24 @@ void draw_board(SDL_Renderer *r, struct board *board, int x, int y) {
 	}
 }
 
+void draw_held(SDL_Renderer *r, struct board *b, int x, int y) {
+	/* Make a new empty board */
+	struct board nb;
+	nb.w = nb.h = 5;
+	nb.bw = nb.bh = b->bw;
+	nb.blocks = malloc(nb.w * nb.h * sizeof(struct block));
+	for (int i = 0; i < (nb.w * nb.h); i++) {
+		nb.blocks[i] = empty_block;
+	}
+
+	/* Put the current held piece in the empty board, then display it */
+	if (b->held_piece != -1) {
+		make_shape(&nb, b->held_piece);
+	}
+	draw_board(r, &nb, x, y);
+	free(nb.blocks);
+}
+
 TTF_Font *font;
 
 void draw_text(SDL_Renderer *r, char *s, int x, int y, int w, int h) {

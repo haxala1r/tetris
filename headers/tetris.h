@@ -33,8 +33,18 @@ struct board {
 
 	struct shape cur_shape;
 
+	int bag[7];
+	int cur_piece;
+	int held_piece;
+	
 	/* Incremented every time a line is cleared */
 	int score;
+};
+
+struct move {
+	int x_offset;
+	int rotation;
+	int value;
 };
 
 static struct block empty_block  = { .color = { 255, 255, 255 } };
@@ -48,6 +58,8 @@ static struct block red_block    = { .color = { 255,   0,   0 } };
 
 /* Creates a shape on the given board */
 int make_shape(struct board *board, int shape);
+int get_next_shape(struct board *b);
+int hold_piece(struct board *b);
 
 /* Rotates the current shape of the board
  * once, 90 degrees to the right.
@@ -56,9 +68,10 @@ int rotate_shape(struct board *board);
 
 int move_shape(struct board *board, int x_offset, int y_offset);
 int reset_board(struct board *board);
-
+int hard_drop(struct board *b);
 
 void draw_board(SDL_Renderer *r, struct board *b, int x, int y);
+void draw_held(SDL_Renderer *r, struct board *b, int x, int y);
 void draw_text(SDL_Renderer *,char *, int x, int y, int w, int h);
 
 #endif

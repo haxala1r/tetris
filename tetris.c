@@ -5,8 +5,46 @@
  * boards etc.
  */
 
+void shuffle_bag(int *bag) {
+	for (int i = 0; i < 14; i++) {
+		int t = rand() % 7;
+		int s = rand() % 7;
+
+		int temp = bag[t];
+		bag[t] = bag[s];
+		bag[s] = temp;
+	}
+
+}
+
+void refill_bag(struct board *b) {
+	for (int i = 0; i < 7; i++) {
+		b->bag[i] = i;
+	}
+	shuffle_bag(b->bag);
+}
+
+int get_next_shape(struct board *b) {
+	/* Search the current bag for the next piece's index */
+	int i = 0;
+	for (; i < 7; i++) {
+		if (b->bag[i] == -1) continue;
+		break;
+	}
+
+	/* If the bag is all 0's (empty) then randomly fill the bag. */
+	if (i == 7) {
+		refill_bag(b);
+		i = 0;
+	}
+
+	int ret = b->bag[i];
+	b->bag[i] = -1;
+	return ret;
+}
+
 int make_shape(struct board *board, int shape) {
-	/* First, we set the coordinates for the shape, then after the switch 
+	/* First, we set the coordinates for the shape, then after the switch
 	 * we fill in the shape. We do this because we also need to check whether the player lost.
 	 * To check whether the player lost, we check whether the place the piece will spawn in
 	 * is already filled, if so, return 1 to signal player's loss.
@@ -103,6 +141,7 @@ int make_shape(struct board *board, int shape) {
 		if (memcmp(board->blocks + x + y * board->w, &empty_block, sizeof(struct block))) return 1;
 		board->blocks[x + y * board->w] = b;
 	}
+	board->cur_piece = shape;
 	return 0;
 }
 
@@ -227,16 +266,71 @@ collision:
 	}
 	/* First, check for line clears */
 	check_clears(board);
-	/* Immediately create new shape. */
-	return make_shape(board, rand() % 7);
+
+	/* Immediately create new shape if the collision was a result of a purely vertical move  */
+	if (x_offset != 0) return 2;
+	if (make_shape(board, get_next_shape(board))) {
+		return 1; /* return 1 if player lost */
+	}
+	return 2;
 }
 
 int reset_board(struct board *b) {
 	for (int i = 0; i < (b->w * b->h); i++) {
 		b->blocks[i] = empty_block;
 	}
-	make_shape(b, rand() % 7);
+	refill_bag(b);
+	make_shape(b, get_next_shape(b));
 	b->score = 0;
+	b->held_piece = -1;
 	return 0;
 }
+
+int hard_drop(struct board *b) {
+	/* Figure out the height of the shape */
+	int max_y = 0;
+	for (int i = 0; i < 4; i++) {
+		int y = b->cur_shape.blocks[i][1];
+		if (y > max_y) max_y = y;
+	}
+
+	int i = 0;
+	while (1) {
+		int stat = move_shape(b, 0, 1);
+		if (stat == 0) {
+			i++;
+			continue;
+		} else if (stat == 1) {
+			return -1;
+		}
+
+		return b->h - i;
+	}
+}
+
+/* Hold the piece */
+int hold_piece(struct board *b) {
+	/* Determine the piece to swap the current piece with */
+	int held = -1;
+	if (b->held_piece != -1) {
+		held = b->held_piece;
+	}
+	
+	b->held_piece = b->cur_piece;
+	
+	/* Delete the old shape from the board */
+	for (int i = 0; i < 4; i++) {
+		int x = b->cur_shape.blocks[i][0];
+		int y = b->cur_shape.blocks[i][1];
+		b->blocks[x + y * b->w] = empty_block;
+	}
+
+	if (held == -1) {
+		make_shape(b, get_next_shape(b));
+	} else {
+		make_shape(b, held);
+	}
+	return 0;
+}
+
 

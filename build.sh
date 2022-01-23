@@ -11,7 +11,7 @@ OBJS=""
 
 for f in $(find . -name "*.c")
 do
-	gcc -c "${f}" -o "${f%.c}.o"
+	gcc -O3 -c "${f}" -o "${f%.c}.o"
 	OBJS="${OBJS} ${f%.c}.o"
 done
 
