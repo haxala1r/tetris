@@ -8,7 +8,7 @@
 /* Copies the contents of b to nb. nb and nb->blocks must be allocated
  * before the function is called, for optimization reasons.
  * It is simply too slow to allocate another board and free it in every
- * iteration in the loop of evaluate_board(), so we just reuse the same
+ * iteration in the loop of get_best_move(), so we just reuse the same
  * memory each time.
  */
 int copy_board(struct board *nb, struct board *b) {
@@ -136,7 +136,7 @@ double evaluate_board(struct AI *ai, struct board *b, double piece_height) {
 	double score = holes * ai->modifiers[0] 
 		    + (max_height + piece_height) * ai->modifiers[1] 
 		    + pillar_count * ai->modifiers[2]  
-		    + b->score * 10;
+		    + b->score * 2;
 	return score;
 }
 
@@ -227,11 +227,11 @@ struct move *ai_pick_move(struct AI *ai, struct board *b) {
 
 	/* Calculate the end positions for both the current and the held piece  */
 	struct move *m1 = get_best_move(ai, b);
-	if (m1 == NULL) return -1; 
+	if (m1 == NULL) return NULL; 
 
 	hold_piece(b);
 	struct move *m2 = get_best_move(ai, b);
-	if (m2 == NULL) return -1;
+	if (m2 == NULL) return NULL;
 	
 	/* Return whichever one is better */
 	struct move *final_move = m1;
@@ -242,7 +242,7 @@ struct move *ai_pick_move(struct AI *ai, struct board *b) {
 		hold_piece(b);
 		free(m2);
 	}
-	return final_move;;
+	return final_move;
 }
 
 /* Randomly mutates the given AI and returns a new one */

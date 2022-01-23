@@ -61,7 +61,7 @@ int make_shape(struct board *board, int shape);
 int get_next_shape(struct board *b);
 int hold_piece(struct board *b);
 
-/* Rotates the current shape of the board
+/* Rotates the current shape in the board
  * once, 90 degrees to the right.
  */
 int rotate_shape(struct board *board);

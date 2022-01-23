@@ -14,7 +14,8 @@ struct AI {
 
 int get_holes(struct board *);
 int get_pillars(struct board *);
-int ai_pick_move(struct AI *ai, struct board *);
+void apply_move(struct board *, struct move *);
+struct move *ai_pick_move(struct AI *ai, struct board *);
 
 void train_ai();
 
