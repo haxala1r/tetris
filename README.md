@@ -49,3 +49,6 @@ SDL2 ttf libraries installed. GCC is also required to run the build script.
 After you have those installed, just run:
 
 `./build.sh`
+
+## Credits
+Thanks to KineticPlasma Fonts for making the [AppleStorm Font](https://www.fontrepo.com/font/1698/applestorm) used in the game.

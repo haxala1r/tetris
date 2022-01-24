@@ -53,7 +53,7 @@ TTF_Font *font;
 
 void draw_text(SDL_Renderer *r, char *s, int x, int y, int w, int h) {
 	if (font == NULL) {
-		font = TTF_OpenFont("./arial.ttf", 25);
+		font = TTF_OpenFont("./applestorm.ttf", 25);
 		if (font == NULL) return;
 	}
 	SDL_Color color = {255, 255, 255};
