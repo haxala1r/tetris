@@ -44,7 +44,8 @@ Here's the rest of the controls:
 
 ## Building
 Unfortunately, you can only build on linux (you can build it on windows if
-you actually *want* to make your own build script) and you need to have SDL2 and
-GCC installed to run the build script. After you have those installed, just run:
+you actually *want* to make your own build script) and you need to have the SDL2 and
+SDL2 ttf libraries installed. GCC is also required to run the build script. 
+After you have those installed, just run:
 
 `./build.sh`
