@@ -24,7 +24,7 @@ to the very end. I think it's fair to say it can probably do around ~2 million
 fairly reliably.
 
 However, I'm pretty confident it's still fairly good, and of the ~10 tests
-I've run, it has cleared at least ~200.000 lines (and possibly more, I didn't actually
+I've run, it has cleared at least ~500.000 lines (and possibly more, I didn't actually
 wait for it to die).
 
 If you'd like a good comparison, the human world record is currently held by
