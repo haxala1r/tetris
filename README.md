@@ -43,9 +43,9 @@ Here's the rest of the controls:
 * SPACE -> Holds the current tetromino
 
 ## Building
-Unfortunately, you can only build on linux (you can build it on windows if
-you actually *want* to make your own build script) and you need to have the SDL2 and
-SDL2 ttf libraries installed. GCC is also required to run the build script. 
+Unfortunately, you can only build on linux (it's definitely possible to build on windows, but I ain't 
+making any scripts for that anytime soon as I use Visual studio for the windows builds myself) 
+and you need to have the SDL2 and SDL2 ttf libraries installed. GCC is also required to run the build script. 
 After you have those installed, just run:
 
 `./build.sh`

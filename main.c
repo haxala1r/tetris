@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
 		draw_buttons(renderer);	
 		/* Draw the score at the top */
 		char s[64];
-		sprintf_s(s, 64, "SCORE: %d", tetris_board.score);
+		sprintf(s, "SCORE: %d", tetris_board.score);
 		draw_text(renderer, s, sw/2 - 100, 0, 200, 40);
 		
 		SDL_RenderPresent(renderer);
