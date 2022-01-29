@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 	/* Make these part of the config perhaps?*/
 	int sw=600, sh=600; /* Window sizes      */
 
-	SDL_Window *window = SDL_CreateWindow("Tetris", 0, 0, sw, sh, 0);
+	SDL_Window *window = SDL_CreateWindow("Tetris", 10, 10, sw, sh, 0);
 	if (window == NULL) return -3;
 	SDL_Renderer *renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_ACCELERATED);
 	if (renderer == NULL) return -3;
