@@ -1,3 +1,4 @@
+#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
@@ -18,7 +19,7 @@ int get_shape_x(struct board *b) {
 	return x;
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
 	srand(time(NULL));
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) return -1;
 	if (TTF_Init() == 1) return -2;
@@ -88,7 +89,7 @@ int main(void) {
 				default:
 					break;
 				}
-				if (stat) reset_board(&tetris_board);
+				if (stat == 1) reset_board(&tetris_board);
 				break;
 			case SDL_KEYUP:
 				switch(event.key.keysym.sym) {
@@ -170,7 +171,7 @@ int main(void) {
 		draw_buttons(renderer);	
 		/* Draw the score at the top */
 		char s[64];
-		sprintf(s, "SCORE: %d", tetris_board.score);
+		sprintf_s(s, 64, "SCORE: %d", tetris_board.score);
 		draw_text(renderer, s, sw/2 - 100, 0, 200, 40);
 		
 		SDL_RenderPresent(renderer);

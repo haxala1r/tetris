@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "headers/tetris.h"
 #include "headers/ai.h"
 
