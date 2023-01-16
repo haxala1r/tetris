@@ -1,7 +1,7 @@
 # Tetris
 
 You know it, you love it, and you want it. This repository contains a tetris
-clone with my own personal AI (or bot, whichever you want to call it) built in!
+clone with my own personal AI (whichever you want to call it) built in!
 
 When you first start it up you might notice the SCORE at the top of the screen.
 Don't be fooled by that evil lie, it's not an actual score! The score you see
