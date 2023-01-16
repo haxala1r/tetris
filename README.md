@@ -11,7 +11,7 @@ score number you'd see in any actual tetris game.
 You might also notice a square to the left of the main board in the middle.
 This square contains the held piece.
 
-## AI/Bot
+## AI
 The built-in AI can be toggled by a button on the main screen. I'm sure you'll
 find it, it's pretty hard to miss. There's also a SPEED button, which
 will grant the AI the power of super-speed!
@@ -20,12 +20,12 @@ The AI is fairly good (if I say so myself). The first time I tested this specifi
 model, it had gotten to a score (read as: cleared lines) of ~4.5 million.
 This number will most likely change on how lucky you are when you run it, and
 the number I just gave likely isn't reliable because I only ran *one* game
-to the very end. I think it's fair to say it can probably do around ~2 million
-fairly reliably.
+to the very end. I think it's fair to say it can probably do around ~3-4 million
+fairly reliably, as the games I ran almost always got that far.
 
 However, I'm pretty confident it's still fairly good, and of the ~10 tests
-I've run, it has cleared at least ~500.000 lines (and possibly more, I didn't actually
-wait for it to die).
+I've run, it has cleared at least ~2 million lines (and possibly more, I didn't actually
+wait for it to die.)
 
 If you'd like a good comparison, the human world record is currently held by
 Harry Hong, with 4.988 lines cleared.
@@ -43,7 +43,7 @@ Here's the rest of the controls:
 * SPACE -> Holds the current tetromino
 
 ## Building
-Unfortunately, you can only build on linux (it's definitely possible to build on windows, but I ain't 
+Unfortunately, you can only build on linux (it's definitely possible to build on windows, but I am not 
 making any scripts for that anytime soon as I use Visual studio for the windows builds myself) 
 and you need to have the SDL2 and SDL2 ttf libraries installed. GCC is also required to run the build script. 
 After you have those installed, just run:
