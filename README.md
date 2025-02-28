@@ -1,10 +1,11 @@
 # Tetris
 
-You know it, you love it, and you want it. This repository contains a tetris
-clone with my own personal AI (whichever you want to call it) built in!
+[Showcase](https://github.com/user-attachments/assets/6b6c8427-b582-4cc2-914c-420506e7a0ae)
+
+This repository contains a tetris clone with a bot built in.
 
 When you first start it up you might notice the SCORE at the top of the screen.
-Don't be fooled by that evil lie, it's not an actual score! The score you see
+Don't be fooled by that, the score you see
 is simply the amount of lines that have been cleared, and *NOT* the traditional
 score number you'd see in any actual tetris game.
 
@@ -16,7 +17,7 @@ The built-in AI can be toggled by a button on the main screen. I'm sure you'll
 find it, it's pretty hard to miss. There's also a SPEED button, which
 will grant the AI the power of super-speed!
 
-The AI is fairly good (if I say so myself). The first time I tested this specific
+The first time I tested this specific
 model, it had gotten to a score (read as: cleared lines) of ~4.5 million.
 This number will most likely change on how lucky you are when you run it, and
 the number I just gave likely isn't reliable because I only ran *one* game
@@ -31,6 +32,9 @@ the heuristic function and optimize the results.
 
 A human player can do much better than this, as the current bot does not at
 all optimize for getting e.g. 4 lines cleared at the same time.
+
+Still, this was a very fun project. I want to do something like this again
+in the future.
 
 ## Game and controls
 As mentioned, you can toggle the AI (and its super-speed feature) by clicking
