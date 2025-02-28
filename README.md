@@ -1,7 +1,7 @@
 # Tetris
 
 You know it, you love it, and you want it. This repository contains a tetris
-clone with my own personal AI (or bot, whichever you want to call it) built in!
+clone with my own personal AI (whichever you want to call it) built in!
 
 When you first start it up you might notice the SCORE at the top of the screen.
 Don't be fooled by that evil lie, it's not an actual score! The score you see
@@ -11,7 +11,7 @@ score number you'd see in any actual tetris game.
 You might also notice a square to the left of the main board in the middle.
 This square contains the held piece.
 
-## AI/Bot
+## AI
 The built-in AI can be toggled by a button on the main screen. I'm sure you'll
 find it, it's pretty hard to miss. There's also a SPEED button, which
 will grant the AI the power of super-speed!
@@ -20,8 +20,8 @@ The AI is fairly good (if I say so myself). The first time I tested this specifi
 model, it had gotten to a score (read as: cleared lines) of ~4.5 million.
 This number will most likely change on how lucky you are when you run it, and
 the number I just gave likely isn't reliable because I only ran *one* game
-to the very end. I think it's fair to say it can probably do around ~2 million
-fairly reliably.
+to the very end. I think it's fair to say it can probably do around ~3-4 million
+fairly reliably, as the games I ran almost always got that far.
 
 The model itself isn't particularly complex - it uses a very simple heuristic function
 to determine the score of a given position, and then makes its move. There is
