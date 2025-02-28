@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
 #include "headers/tetris.h"
 #include "headers/ai.h"
 
@@ -29,7 +31,7 @@ int check_shape_coordinate(struct board *b, int x, int y) {
 	return 0;
 }
 
-/* This is currently unused. I haven't yet decided if I'll add this as an extra 
+/* This is currently unused. I haven't yet decided if I'll add this as an extra
  * modifier later on, so this is just unused code for now.
  */
 int get_bumpiness(struct board *b) {
@@ -56,7 +58,7 @@ int check_if_surrounded_space(struct board *b, int x, int y) {
 	if (memcmp(b->blocks + x + y * b->w, &empty_block, sizeof(struct block))) {
 		return 0;
 	}
-	
+
 	/* Check left */
 	if ((x != 0) && (!memcmp(b->blocks + x - 1 + y * b->w, &empty_block, sizeof(struct block)))) {
 		return 0;
@@ -125,19 +127,34 @@ int get_holes(struct board *b) {
 	return holes;
 }
 
+/* Get the amount of blocks in the right-most column */
+int get_right_blocks(struct board *b) {
+	int blocks = 0;
+
+	for (int i = 0; i < b->h; i++) {
+		if (memcmp(b->blocks + i * b->w + b->w - 1, &empty_block, sizeof(struct block))) {
+			blocks++;
+		}
+	}
+	return blocks;
+}
+
 double evaluate_board(struct AI *ai, struct board *b, double piece_height) {
 	/* Count the number of holes. Each hole is -2 points.  */
 	double holes = get_holes(b);
 
 	/* Moves are punished if they're too high */
 	double max_height = get_height(b);
-	
+
 	double pillar_count = get_pillars(b);
 
-	double score = holes * ai->modifiers[0] 
-		    + (max_height + piece_height) * ai->modifiers[1] 
-		    + pillar_count * ai->modifiers[2]  
-		    + b->score * 2;
+	double right_blocks = get_right_blocks(b);
+
+	double score = holes * ai->modifiers[0]
+		    + (max_height + piece_height) * ai->modifiers[1]
+		    + pillar_count * ai->modifiers[2]
+		    + right_blocks * ai->modifiers[3]
+		    + b->score * 0;
 	return score;
 }
 
@@ -204,7 +221,7 @@ struct move *get_best_move(struct AI *ai, struct board *b) {
 	}
 	free(cb->blocks);
 	free(cb);
-	
+
 	/* Return NULL if ALL possible moves result in loss. */
 	if (best_value == -0xFFFFFF) {
 		free(move);
@@ -215,12 +232,13 @@ struct move *get_best_move(struct AI *ai, struct board *b) {
 
 /* NOTE: The initial modifiers I gave for the main AI were { -10, -1, -2 }
  * but after a little bit of training, I reached the modifiers of { -9.5, -1.9, -2.5}
- * Since training takes a long time, it's currently off-limits and we just start with these 
+ * but after more, and efficient training I reached { -10.1, -2.5, -2.7, -4.4 }
+ * Since training takes a long time, it's currently off-limits and we just start with these
  * hard-coded modifiers insted.
  * TODO: maybe add the option to train? You can currently still train the ai by
  * calling train_ai() from main, but maybe it would be better to make it a togglable option
  */
-struct AI main_ai = { .modifiers = {-9.5, -1.9, -2.5} };
+struct AI main_ai = { .modifiers = { -10.1, -2.5, -2.7, -4.4 } };
 
 /* Returns NULL when the AI loses */
 struct move *ai_pick_move(struct AI *ai, struct board *b) {
@@ -228,12 +246,12 @@ struct move *ai_pick_move(struct AI *ai, struct board *b) {
 
 	/* Calculate the end positions for both the current and the held piece  */
 	struct move *m1 = get_best_move(ai, b);
-	if (m1 == NULL) return NULL; 
+	if (m1 == NULL) return NULL;
 
 	hold_piece(b);
 	struct move *m2 = get_best_move(ai, b);
 	if (m2 == NULL) return NULL;
-	
+
 	/* Return whichever one is better */
 	struct move *final_move = m1;
 	if (m2->value > m1->value) {
@@ -251,7 +269,7 @@ struct AI randomly_mutate(struct AI *ai) {
 	double mutation_rate = 0.1;
 	struct AI new;
 	new.score = 0;
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 4; i++) {
 		int sign = rand() % 2;
 		double mod = (double)(rand() % 11) * mutation_rate;
 		new.modifiers[i] = ai->modifiers[i] + (sign ? -mod : mod);
@@ -259,13 +277,83 @@ struct AI randomly_mutate(struct AI *ai) {
 	return new;
 }
 
+/* Runs a single AI on a test board until it dies, and returns its score */
+int test_ai(struct AI *ai) {
+	int score;
+	struct board *b = malloc(sizeof(*b));
+	b->blocks = malloc(sizeof(struct block) * 20 * 10);
+	b->w = 10;
+	b->h = 20;
+	b->bw = b->bh = 10;
+	reset_board(b);
+
+	while (1) {
+		struct move *m;
+		if ((m = ai_pick_move(ai, b)) == NULL) {
+			break;
+		} else {
+			apply_move(b, m);
+			hard_drop(b);
+			free(m);
+		}
+		score = b->score;
+	}
+	return score;
+}
+
+/* Takes a list of all AIs, calls test_ai on all of them in parallel, and
+ * writes their scores into the structs
+ */
+void score_ais(struct AI *ais, int ai_count) {
+	int pids[10];
+	int pipes[10][2];
+
+	/* This loops over every AI, simulates them, and records their scores */
+	for (int j = 0; j < 10; j++) {
+		pipe(pipes[j]);
+
+		/* We run each AI in a seperate process. */
+		pids[j] = fork();
+
+		if (pids[j] == 0) {
+			close(pipes[j][0]); /* Close the read end of the pipe */
+			int score = test_ai(ais + j);
+			printf("AI #%d finished its run. Score: %d Modifiers: { %f, %f, %f, %f}\n", j, score, ais[j].modifiers[0], ais[j].modifiers[1], ais[j].modifiers[2], ais[j].modifiers[3]);
+
+			/* We return the score to the main process via the pipe.
+			 */
+			write(pipes[j][1], &score, 4);
+			exit(0);
+		} else {
+			close(pipes[j][1]); /* close the write end of the pipe */
+		}
+	}
+
+	/* Wait for all processes to complete */
+	for (int j = 0; j < 10; j++) {
+		int status = 0;
+		int pid = wait(&status);
+		for (int k = 0; k < 10; k++) {
+			if (pids[k] == pid) {
+				int score;
+				read(pipes[k][0], &score, 4);
+				close(pipes[k][0]);
+				printf("Recorded status of AI #%d as %d\n", k, score);
+				ais[k].score = score;
+				break;
+			}
+		}
+	}
+}
+
+
 /* This... This is the ultimate function.
  * This is the concentration of all the pain and misery I felt during this project.
  * This is the function in which we determine the BEST AI AMONG THEM ALL.
- * 
+ *
  * ... This is where we create the ultimate life form.
  *
- * Jokes aside, here's a summary of how it works: 
+ * Jokes aside, here's a summary of how it works:
  * This function essentially generates a bunch of AIs (sets of modifiers to use in evaluate_board)
  * and tests them all on an empty board. In each cycle there are 10 AIs, and
  * the best of them is chosen at the end of each cycle. Then, for the next cycle
@@ -277,10 +365,10 @@ struct AI randomly_mutate(struct AI *ai) {
  * NOTE: all of this code is currently unused. This is due to the fact that
  * the modifiers that I discovered recently seem to go practically
  * forever into the game, and if the game doesn't end, there's no genetic algorithm
- * to speak of. Okay, it doesn't go on literally forever, but this function is so 
+ * to speak of. Okay, it doesn't go on literally forever, but this function is so
  * under-optimized that it takes AGES to actually "train" anything.
  *
- * Maybe I'll make it an option to train the AI in the future, if I ever optimize this thing 
+ * Maybe I'll make it an option to train the AI in the future, if I ever optimize this thing
  * enough to the point it doesn't take FOUR HOURS TO RUN A SINGLE FUCKING CYCLE.
  * Multiprocessing can help with that, I hope.
  *
@@ -290,11 +378,6 @@ struct AI randomly_mutate(struct AI *ai) {
 void train_ai(void) {
 	/* Allocate space for some ai. We will be reusing this array  */
 	struct AI *ais = malloc(sizeof(struct AI) * 10);
-	struct board *b = malloc(sizeof(struct board));
-	b->blocks = malloc(sizeof(struct block) * 20 * 10);
-	b->w = 10;
-	b->h = 20;
-	b->bw = b->bh = 10;	
 
 	/* This is the main loop. We have 10 cycles, or "generations" */
 	for (int i = 0; i < 10; i++) {
@@ -303,34 +386,19 @@ void train_ai(void) {
 			ais[j] = randomly_mutate(&main_ai);
 		}
 
-		/* This loops over every AI, simulates them, and records their scores */
-		for (int j = 0; j < 10; j++) {
-			printf("Hi?\n");
-			reset_board(b);
-			int score;
-			while (1) {
-				struct move *m;
-				if ((m = ai_pick_move(ais + j, b)) == NULL) {
-					break;
-				} else {
-					apply_move(b, m);
-					hard_drop(b);
-					free(m);
-				}
-				score = b->score;	
-			}
-			/* The score is how we define a "better" AI */
-			ais[j].score = score; 
-		}
+		score_ais(ais, 10);
+
 		/* Now find the best AI and replace main_ai with that */
+		int best_index = 0;
 		struct AI *best = NULL;
 		for (int j = 0; j < 10; j++) {
 			if ((best == NULL) || (best->score < ais[j].score)) {
 				best = ais + j;
+				best_index = j;
 			}
 		}
 		if (best->score > main_ai.score) {
-			printf("loop #%d, best: %d, modifiers changed to: %f %f %f\n", i, best->score, best->modifiers[0], best->modifiers[1], best->modifiers[2]);
+			printf("loop #%d, best: %d, score: %d, modifiers changed to: %f %f %f\n", i, best_index, best->score, best->modifiers[0], best->modifiers[1], best->modifiers[2]);
 			memcpy(&main_ai, best, sizeof(struct AI));
 		} else {
 			printf("loop #%d, no changes made\n", i);

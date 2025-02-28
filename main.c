@@ -20,6 +20,7 @@ int get_shape_x(struct board *b) {
 }
 
 int main(int argc, char *argv[]) {
+	//train_ai();
 	srand(time(NULL));
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) return -1;
 	if (TTF_Init() == 1) return -2;

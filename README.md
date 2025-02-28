@@ -23,12 +23,14 @@ the number I just gave likely isn't reliable because I only ran *one* game
 to the very end. I think it's fair to say it can probably do around ~2 million
 fairly reliably.
 
-However, I'm pretty confident it's still fairly good, and of the ~10 tests
-I've run, it has cleared at least ~500.000 lines (and possibly more, I didn't actually
-wait for it to die).
+The model itself isn't particularly complex - it uses a very simple heuristic function
+to determine the score of a given position, and then makes its move. There is
+almost no actual machine learning going on in the final game.
+I did however use some very simple algorithm to test different parameters for
+the heuristic function and optimize the results.
 
-If you'd like a good comparison, the human world record is currently held by
-Harry Hong, with 4.988 lines cleared.
+A human player can do much better than this, as the current bot does not at
+all optimize for getting e.g. 4 lines cleared at the same time.
 
 ## Game and controls
 As mentioned, you can toggle the AI (and its super-speed feature) by clicking
@@ -43,10 +45,10 @@ Here's the rest of the controls:
 * SPACE -> Holds the current tetromino
 
 ## Building
-Unfortunately, you can only build on linux (it's definitely possible to build on windows, but I ain't 
-making any scripts for that anytime soon as I use Visual studio for the windows builds myself) 
+Builds are only tested on linux (it's definitely possible to build on windows, but I'm not 
+making any scripts for that anytime soon)
 and you need to have the SDL2 and SDL2 ttf libraries installed. GCC is also required to run the build script. 
-After you have those installed, just run:
+After you have those installed, just run the build script:
 
 `./build.sh`
 

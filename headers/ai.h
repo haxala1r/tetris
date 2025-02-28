@@ -8,7 +8,7 @@
  * these and try to choose the best one, essentially training the AI.
  */
 struct AI {
-	double modifiers[3];
+	double modifiers[4];
 	int score;
 };
 
